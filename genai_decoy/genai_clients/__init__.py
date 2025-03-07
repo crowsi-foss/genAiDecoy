@@ -1,5 +1,6 @@
 import os
-from .openaiclient import OpenAIClient
+
+from genai_decoy.logging import ecs_log
 from .geminiclient import GeminiClient
 
 def get_genai_client(config):
@@ -8,9 +9,8 @@ def get_genai_client(config):
     if not api_key:
         raise SystemExit("API key is required but missing. Exiting...")
 
-    if config["genai_provider"] == "openai":
-        return OpenAIClient(api_key, config)
-    elif config["genai_provider"] == "gemini":
+    if config["genai_provider"] == "gemini":
         return GeminiClient(api_key, config)
     else:
+        ecs_log("error", "GenAI provider not supported", provider=config["genai_provider"])
         raise ValueError("Unsupported GenAI provider")

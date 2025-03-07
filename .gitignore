@@ -1,1 +1,4 @@
 /genai_decoy/config/config.json
+/genai_decoyenv/
+/genai_decoy/genai_clients/__pycache__/
+

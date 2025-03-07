@@ -11,6 +11,7 @@ async def main():
     ecs_log("startup", "Starting decoy service", protocol=config["protocol"], port=config["port"])
 
     client = get_genai_client(config)
+    
 
     if config["protocol"] == "http":
         await start_http_server(config, client)

@@ -1,42 +1,51 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, Request
 from collections import defaultdict
 from genai_decoy.logging import ecs_log
 import urllib.parse
 import re
 import asyncio
 
-app = Flask(__name__)
+app = FastAPI()
 
 # Store session context per client IP
 sessions = defaultdict(list)
 
 
-@app.route('/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE'])
-@app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-async def default(path):
-    """Handles incoming HTTP requests and returns an AI-generated response."""
-
-    # Extract and parse client certificate info from Traefik headers
-    client_org, client_serial_nr = None, None
-    x_forward_cert_info = request.headers.get('X-Forwarded-Tls-Client-Cert-Info')
+def extract_cert_info(x_forward_cert_info):
+    """Extracts client certificate information from Traefik headers."""
+    client_org = "None"
+    client_serial_nr = "None"
 
     if x_forward_cert_info:
-        try:
-            unquoted_string = urllib.parse.unquote(x_forward_cert_info)
-            org_match = re.search(r'O=([^";]+)', unquoted_string)
-            serial_match = re.search(r'SerialNumber="([^"]+)"', unquoted_string)
+        unquoted_string = urllib.parse.unquote(x_forward_cert_info)
 
-            client_org = org_match.group(1) if org_match else None
-            client_serial_nr = serial_match.group(1) if serial_match else None
-        except Exception as e:
-            ecs_log("error", "Failed to parse client certificate info", error=str(e))
+        organization_match = re.search(r'O=([^";]+)', unquoted_string)
+        serial_number_match = re.search(r'SerialNumber="([^"]+)"', unquoted_string)
 
-    # Collect request data and identify client IP
-    client_ip = request.headers.get('X-Real-IP', request.remote_addr)
-    data = request.data.decode('utf-8')
+        client_org = organization_match.group(1) if organization_match else "None"
+        client_serial_nr = serial_number_match.group(1) if serial_number_match else "None"
+
+    return client_org, client_serial_nr
+
+
+
+
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def handle_request(request: Request, full_path: str):
+    """Handles incoming HTTP requests and returns an AI-generated response."""
+
+    # Extract certificate info if provided
+    client_org, client_serial_nr = extract_cert_info(request.headers.get("x-forwarded-tls-client-cert-info"))
+
+    # Collect meta data for logging
+    client_ip = request.headers.get("X-Real-IP", request.client.host)
     request_method = request.method
-    request_path = request.path
+    request_path = full_path
     request_host = request.headers.get('Host')
+
+    # Read request body
+    body = await request.body()
+    body_data = body.decode("utf-8") if body else ""
 
     # Log incoming request with ECS-compliant field names
     ecs_log(
@@ -54,18 +63,19 @@ async def default(path):
                 }
             }
         },
-        body=data
+        body=body_data
     )
 
     # Update session context (keep only last 10 messages per client)
-    sessions[client_ip].append(data)
+    sessions[client_ip].append(body_data)
     session_context = "\n".join(sessions[client_ip][-10:])
 
     # Prepare the context for the GenAI client
-    context = f"{app.config['context']}\n{app.config['prompt']}\n{session_context}"
+    context = f"{app.state.context}\n{app.state.prompt}\n{session_context}"
+
     try:
         # Ensure asynchronous call to AI client
-        response = await app.config["genai_client"].generate_response(context)
+        response = await app.state.genai_client.generate_response(context)
         status_code = 200
     except Exception as e:
         ecs_log("error", "Failed to generate AI response", error=str(e))
@@ -81,14 +91,17 @@ async def default(path):
         body=response
     )
 
-    return jsonify(response), status_code
+    return {"response": response}, status_code
 
 
-def start_http_server(config, client):
-    """Starts the HTTP server with the provided configuration."""
-    app.config["genai_client"] = client
-    app.config["prompt"] = config["prompt"]
-    app.config["context"] = config["context"]
+async def start_http_server(config, client):
+    """Starts the FastAPI HTTP server."""
+    app.state.genai_client = client
+    app.state.prompt = config["prompt"]
+    app.state.context = config["context"]
 
-    # Run Flask app (note: Flask is inherently synchronous)
-    app.run(host='0.0.0.0', port=config["port"])
+    import uvicorn
+    config = uvicorn.Config(app, host="0.0.0.0", port=config["port"], log_level="info")
+    server = uvicorn.Server(config)
+
+    await server.serve()
