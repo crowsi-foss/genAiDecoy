@@ -8,6 +8,7 @@ from fastapi.responses import Response
 
 app = FastAPI()
 
+# Initialize session with a default maxlen of 10
 session = defaultdict(lambda: deque(maxlen=10))
 
 
@@ -121,7 +122,12 @@ async def handle_request(request: Request, full_path: str):
 async def start_http_server(config, client):
     """Starts the FastAPI HTTP server."""
     app.state.genai_client = client
-    app.state.userprompt=config["prompt"]
+    app.state.userprompt = config["prompt"]
+
+    # Update session maxlen from config
+    maxlen = config.get("userInputBuffering", 10)
+    global session
+    session = defaultdict(lambda: deque(maxlen=maxlen))
 
     import uvicorn
     config = uvicorn.Config(app, host="0.0.0.0", port=config["port"], log_level="info")
