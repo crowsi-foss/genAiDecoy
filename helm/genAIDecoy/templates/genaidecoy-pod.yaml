@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genaidecoy-deployment
+  labels:
+    app: genaidecoy
+spec:
+  replicas: {{.Values.replicaCount}}
+  selector:
+    matchLabels:
+      app: genaidecoy
+  template:
+    metadata:
+      labels:
+        app: genaidecoy
+    spec:
+      containers:
+      - name: genaidecoy
+        image: {{.Values.imagereference}} 
+        volumeMounts:
+          {{- if eq .Values.useSecretProvider true }}
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets"
+            readOnly: true
+          {{- end }}
+          - name: tmp
+            mountPath: "/tmp"
+        ports:
+        - containerPort: {{.Values.containerPort}}
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          seccompProfile:
+            type: "RuntimeDefault"
+        env:
+        - name: {{.Values.genAIApiKeyEnvVariableName}}
+          valueFrom:
+            secretKeyRef:
+              name: {{.Values.secretKeyRefName}}
+              key: {{.Values.secretKeyRefKey}}
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      {{- if eq .Values.useSecretProvider true}}
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: {{.Values.secretProvider}}
+      {{- end }}
+      {{- if .Values.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{.Values.imagePullSecret}}
+      {{- end }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: genaidecoy-service
+spec:
+  selector:
+    app: genaidecoy
+  ports:
+  - protocol: TCP
+    port: {{.Values.containerPort}}
+    targetPort: {{.Values.containerPort}}
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: limit-genaidecoy-communication
+spec:
+  podSelector:
+    matchLabels:
+        app: genaidecoy
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: traefik
+  - ports:
+    - protocol: TCP
+      port: {{.Values.containerPort}}
