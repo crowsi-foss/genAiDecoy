@@ -1,14 +1,14 @@
-import json
+import yaml
 import os
 from genai_decoy.logging import ecs_log
 
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "config.json")
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "config.yaml")
 
 def load_config():
     """Loads configuration from a JSON file."""
     try:
-        with open(CONFIG_PATH, 'r') as f:
-            return json.load(f)
+        with open(CONFIG_PATH, 'r') as file:
+            return yaml.safe_load(file)
     except Exception as e:
         ecs_log("error", "Failed to load configuration", error=str(e))
         raise SystemExit("Configuration loading failed. Exiting...")
