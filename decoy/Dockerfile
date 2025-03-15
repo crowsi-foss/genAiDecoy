@@ -4,7 +4,7 @@
 # The rest of the project repository remains licensed under the MPL-2.0 license. See the LICENSE file for details.
 
 # Base image
-FROM python:3.13.2-slim-bookworm
+FROM python:alpine
 
 # Create a non-root user and group with a numeric UID and GID
 RUN addgroup --gid 1001 --system appuser && adduser --uid 1001 --ingroup appuser --system appuser
