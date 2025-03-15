@@ -16,7 +16,7 @@ genAIApiKeyEnvVariableName: "GENAI_API_KEY"
 useSecretProvider: true # Set to false to use a plain Kubernetes Secret
 
 # Name of the secret provider to use
-secretProvider: "genaidecoy-secret-provider"
+secretProvider: "genAIDecoySecretProvider"
 
 # Name of the Kubernetes Secret to reference
 secretKeyRefName: "AIapi-secret"
