@@ -19,10 +19,10 @@ useSecretProvider: true # Set to false to use a plain Kubernetes Secret
 secretProvider: "genaidecoysecretprovider"
 
 # Name of the Kubernetes Secret to reference
-secretKeyRefName: "AIapi-secret"
+secretKeyRefName: "aiapi-secret"
 
 # Key within the Kubernetes Secret to use for the API key
-secretKeyRefKey: "genAIApiKey"
+secretKeyRefKey: "genaiapikey"
 
 # Path prefix for the API. This tells the traefik ingress controller to route traffic to the correct service.
 Pathprefix: "PathPrefix(`/api`)"
