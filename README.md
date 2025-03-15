@@ -81,7 +81,7 @@ This project is in an early stage. Therefore, we would very much appreciate any 
 
 ## License Note
 
-Overall, this project is licensed under the MLP 2.0 License. See the [LICENSE](LICENSE) file for more details. However, to allow you to make changes to the `/genai_decoy/config/config.yaml` file or the Dockerfile without the need to publish them afterward, these two files fall under the Apache-2.0 license.
+Overall, this project is licensed under the MLP 2.0 License. See the [LICENSE](LICENSE) file for more details. However, to allow you to make changes to the `/decoy/code/config/config.yaml` file or the Dockerfile without the need to publish them afterward, these two files fall under the Apache-2.0 license.
 
 
 

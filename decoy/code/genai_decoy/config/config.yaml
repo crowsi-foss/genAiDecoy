@@ -3,13 +3,29 @@
 # It may be modified without the obligation to publish the changes.
 # All other parts of the project remain under the MLP 2.0 License.
 
-
+# Protocol to be used by the decoy. Currently only http is supported.
 protocol: http
+
+# Port on which the decoy will listen
 port: 8000
+
+# Provider of the generative AI model. Currently only Gemini is supported.
 genai_provider: gemini
+
+# Specific model to be used. Make sure that this aligns with the provider.
 model: gemini-2.0-flash-lite
+
+# Prompt to guide the AI's responses
 prompt: "You are the backend of a CROWSI HTTP honeypot decoy, handling potential malicious requests from attackers interacting with an edge device. You are listening on /api. Generate realistic, contextually consistent HTTP responses that keep the attacker engaged without revealing your AI nature, the honeypot, or the CROWSI project."
+
+# Temperature setting for the AI's response randomness
 temperature: 0.1
+
+# Maximum number of tokens in the AI's output
 max_output_tokens: 10000
+
+# Environment variable name for the API key
 api_key_env_var: GENAI_API_KEY
+
+# Buffer size for user input. E.g. for http this defines how many requests and responses are buffered and given to the AI to generate a response on.
 userInputBuffering: 10
