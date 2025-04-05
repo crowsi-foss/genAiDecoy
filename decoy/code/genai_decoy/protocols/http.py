@@ -3,8 +3,8 @@ from collections import defaultdict, deque
 from genai_decoy.logging import ecs_log
 import urllib.parse
 import re
-import asyncio
 from fastapi.responses import Response
+import uvicorn
 
 app = FastAPI()
 
@@ -76,7 +76,7 @@ async def handle_request(request: Request, full_path: str):
     )   
 
     
-    # get the last 10 requests of the client
+    # get the last requests of the client
     history = list(session[client_serial_nr])
 
     system_prompt = f"""{app.state.userprompt} Your response should be a valid http response. You are free to choose the status code and the body. Your response should be formatted like this your_status_code#####your_body. Make sure that your response doesn't contain ##### at any other place then where it is used for the seperation of the different parts of the response. The status code should be formatted as int. Your response body should be a json string."""
@@ -84,7 +84,7 @@ async def handle_request(request: Request, full_path: str):
 
     try:
         # Ensure asynchronous call to AI client
-        ai_response=await app.state.genai_client.generate_response(prompt=f"""Current received request: {request_info}\nLast (up to 10) received requests and given responses: {history}""", system_instructions=system_prompt)
+        ai_response=await app.state.genai_client.generate_response(prompt=f"""Current received request: {request_info}\nLast received requests and given responses: {history}""", system_instructions=system_prompt)
         ai_status_code, ai_response_body = ai_response.split("#####")
         ai_status_code= int(ai_status_code)
     except Exception as e:
@@ -122,14 +122,14 @@ async def handle_request(request: Request, full_path: str):
 async def start_http_server(config, client):
     """Starts the FastAPI HTTP server."""
     app.state.genai_client = client
-    app.state.userprompt = config["prompt"]
+    app.state.userprompt = f"""{config["baseprompt"]}\n{config["http"]["httpprompt"]}"""
 
     # Update session maxlen from config
     maxlen = config.get("userInputBuffering", 10)
     global session
     session = defaultdict(lambda: deque(maxlen=maxlen))
 
-    import uvicorn
+    
     config = uvicorn.Config(app, host="0.0.0.0", port=config["port"], log_level="info")
     server = uvicorn.Server(config)
 

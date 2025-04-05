@@ -5,7 +5,7 @@ from genai_decoy.logging import ecs_log
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "config.yaml")
 
 def load_config():
-    """Loads configuration from a JSON file."""
+    """Loads configuration from config.yaml file."""
     try:
         with open(CONFIG_PATH, 'r') as file:
             return yaml.safe_load(file)
@@ -15,13 +15,13 @@ def load_config():
 
 def validate_config(config):
     """Validates required fields in the configuration."""
-    required_fields = ["protocol", "port", "genai_provider", "prompt", "api_key_env_var"]
+    required_fields = ["protocol", "port", "genai_provider", "baseprompt", "api_key_env_var"]
     for field in required_fields:
         if field not in config:
             raise ValueError(f"Missing required config field: {field}")
 
-    if config["protocol"] not in ["http"]:
-        raise ValueError("Invalid protocol specified. Only 'http' is supported.")
+    if config["protocol"] not in ["http", "ssh"]:
+        raise ValueError("Invalid protocol specified. Only 'http' and 'ssh' are supported.")
 
     if config["genai_provider"] not in ["openai", "gemini"]:
         raise ValueError("Unsupported GenAI provider specified.")

@@ -1,3 +1,4 @@
 decoy/code/genai_decoy/genai_clients/__pycache__/
 decoy/code/genai_decoy/protocols/__pycache__/
 decoy/code/genaidecoyenv/
+ssh_host_key.pem
