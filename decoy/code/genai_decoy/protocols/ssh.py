@@ -33,7 +33,7 @@ class SSHServerSession(asyncssh.SSHServerSession):
         if self.clientID not in client_session_history:
             client_session_history[self.clientID] = []
 
-        self._chan.write(f"""{self.config["ssh"]["banner"]}\n""")
+        self._chan.write(f"""{self.config["ssh"]["banner"]}\r\n""")
         self._chan.write(self._prompt)
         ecs_log("debug",f"SSH session established for {self.clientID}.")
 
@@ -53,14 +53,22 @@ class SSHServerSession(asyncssh.SSHServerSession):
     async def handle_command(self, user_request: str):
         ecs_log("debug",f"Handling SSH command: {user_request}")
 
-        system_prompt = f"""{userprompt} \nYour response should be a valid ssh response to the given command."""
+        # Close connection if the user enters "exit"
+        if user_request.lower() == "exit":
+            ecs_log("info", f"SSH session closed by user {self.clientID}.")
+            self._chan.write("Goodbye!\r\n")
+            self._chan.close()
+            return
+
+        system_prompt = f"""{userprompt} \n. Your response should just contain the command output and be formatted like this ssh-response#####your-response\n"""
 
         try:
             # Generate a response including the complete history as context
-            response=await self.aiclient.generate_response(prompt=f"""Current received command: {user_request}\nLast received commands and given responses: {client_session_history[self.clientID]}""", system_instructions=system_prompt)
+            ai_response=await self.aiclient.generate_response(prompt=f"""Current received command: {user_request}\nLast received commands and given responses: {client_session_history[self.clientID]}""", system_instructions=system_prompt)
+            formater, response = ai_response.split("#####")
         except Exception as e:
             ecs_log("error", f"Failed to generate AI response. Error: {str(e)}")
-
+            
         
         self._chan.write(response + "\r\n")
         self._chan.write(self._prompt)
@@ -87,24 +95,23 @@ class SSHServer(asyncssh.SSHServer):
     def password_auth_supported(self):
         return True
 
-    # def public_key_auth_supported(self):
-    #     return True
-
     def validate_password(self, username, password):
-        return True
-
-    # def validate_public_key(self, username, key):
-    #     return True
+        ecs_log("info", f"SSH login attempt with username: {username} and password: {password}")
+        if password == self.config["ssh"]["acceptedPassword"]:
+            return True
+        else:
+            ecs_log("info", f"SSH login failed for username: {username} with incorrect password {password}.")
+            return False
 
     def session_requested(self):
-        print("Start Session ")
+        ecs_log("info",f"SSH session requested.")
         return SSHServerSession(self.config, self.aiclient)
     
     def connection_lost(self, exc: Optional[Exception]) -> None:
         if exc:
-            print('SSH connection error: ' + str(exc), file=sys.stderr)
+            ecs_log("error", f"SSH connection error: {exc}")
         else:
-            print('SSH connection closed.')
+            ecs_log("info", "SSH connection closed gracefully.")
 
 async def start_ssh_service(config, aiclient):
      # Update session maxlen from config

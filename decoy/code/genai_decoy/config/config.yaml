@@ -37,7 +37,8 @@ http:
 # SSH-specific settings. Becomes only relevant if the protocol is set to ssh.
 ssh:
   host_key_path: "ssh_host_key.pem" # Path to the SSH host key file. This is used to generate the SSH server's host key.
-  banner: "Welcome to the CROWSI SSH honeypot"
+  banner: "SSH Connection established. Waiting for command input..." # Banner that is displayed when the SSH connection is established. This can be used to simulate a real SSH server's behavior.
   # ssh specific prompt additions that can be set modified to adept the decoys behavior to the specific usage scenario.
   # this prompt will be combined with the baseprompt to an overall prompt. 
-  sshprompt: "The decoy that you are simulating is a ssh server of an edge device. You are listening on port 22. Generate realistic, contextually consistent SSH responses that keep the attacker engaged. The decoy is running a honeypot and should not reveal its nature."
+  sshprompt: "The decoy that you are simulating is a ssh server of an edge device. Generate realistic, contextually consistent SSH responses that keep the attacker engaged. The decoy is running a honeypot and should not reveal its nature. Make sure that your responses align with your previous given responses."
+  acceptedPassword: "password" # Password that is accepted by the decoy. This is used to simulate a successful login.
