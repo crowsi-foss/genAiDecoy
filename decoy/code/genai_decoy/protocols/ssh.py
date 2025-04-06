@@ -3,6 +3,7 @@ import asyncssh
 import os
 from genai_decoy.logging import ecs_log
 from collections import defaultdict, deque
+from typing import Optional
 
 # Initialize session with a default maxlen of 10
 client_session_history = defaultdict(lambda: deque(maxlen=10))
@@ -58,7 +59,7 @@ class SSHServerSession(asyncssh.SSHServerSession):
             # Generate a response including the complete history as context
             response=await self.aiclient.generate_response(prompt=f"""Current received command: {user_request}\nLast received commands and given responses: {client_session_history[self.clientID]}""", system_instructions=system_prompt)
         except Exception as e:
-            ecs_log("error", "Failed to generate AI response", error=str(e))
+            ecs_log("error", f"Failed to generate AI response. Error: {str(e)}")
 
         
         self._chan.write(response + "\r\n")
@@ -79,29 +80,31 @@ class SSHServerSession(asyncssh.SSHServerSession):
 
 class SSHServer(asyncssh.SSHServer):
     def __init__(self, config, aiclient):
-        print("SSH Server initialized")
         self.config = config
-        self.aiclient = aiclient
+        self.aiclient = aiclient  
+    
 
     def password_auth_supported(self):
-        print("Password auth supported")
         return True
 
-    def public_key_auth_supported(self):
-        print("Public key auth supported")
-        return True
+    # def public_key_auth_supported(self):
+    #     return True
 
     def validate_password(self, username, password):
-        ecs_log("debug","Validating SSH password for user: %s", username)
         return True
 
-    def validate_public_key(self, username, key):
-        ecs_log("debug","Validating SSH public key for user: %s", username)
-        return True
+    # def validate_public_key(self, username, key):
+    #     return True
 
     def session_requested(self):
         print("Start Session ")
         return SSHServerSession(self.config, self.aiclient)
+    
+    def connection_lost(self, exc: Optional[Exception]) -> None:
+        if exc:
+            print('SSH connection error: ' + str(exc), file=sys.stderr)
+        else:
+            print('SSH connection closed.')
 
 async def start_ssh_service(config, aiclient):
      # Update session maxlen from config
