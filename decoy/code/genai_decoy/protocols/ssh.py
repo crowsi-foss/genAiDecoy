@@ -55,6 +55,12 @@ class SSHServerSession(asyncssh.SSHServerSession):
             # Clear the input buffer for the next command
             self._input_buffer = ""
             
+            # Handle the case where the user just hits enter
+            if not user_request:
+                self._chan.write("\r\n")
+                self._chan.write(self._prompt)
+                return
+            
             # Log the received command for debugging purposes
             ecs_log("info", f"SSH command received from {self.clientID}: {user_request}")
             
