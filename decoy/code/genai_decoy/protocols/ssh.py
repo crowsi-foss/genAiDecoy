@@ -8,20 +8,19 @@ from typing import Optional
 # Initialize session with a default maxlen of 10
 client_session_history = defaultdict(lambda: deque(maxlen=10))
 
+# global variable for user prompt
 userprompt=""
 
 
 class SSHServerSession(asyncssh.SSHServerSession):
     def __init__(self, config, aiclient):
         self._input_buffer = ""
-        self._prompt = "RemoteConsole> "
+        self._prompt = config["ssh"]["sshLinePrefix"]
         self.clientID = None
         self.config = config
         self.aiclient = aiclient
 
     def connection_made(self, chan):
-
-        print("Connection made")
         self._chan = chan
 
         # Retrieve client IP from channel extra info
@@ -35,23 +34,35 @@ class SSHServerSession(asyncssh.SSHServerSession):
 
         self._chan.write(f"""{self.config["ssh"]["banner"]}\r\n""")
         self._chan.write(self._prompt)
-        ecs_log("debug",f"SSH session established for {self.clientID}.")
+        ecs_log("info",f"SSH session established for {self.clientID}.")
 
     def shell_requested(self):
         ecs_log("info",f"SSH shell requested for {self.clientID}.")
         return True  # Accept interactive shell
 
     def data_received(self, data, datatype):
-        ecs_log("debug",f"SSH data received from {self.clientID}: {data}")
+        # Log the received data from the client
+        ecs_log("info", f"SSH data received from {self.clientID}: {data}")
+        
+        # Append the received data to the input buffer
         self._input_buffer += data
+        
+        # Check if the input buffer contains a newline or carriage return, indicating the end of a command
         if "\n" in self._input_buffer or "\r" in self._input_buffer:
+            # Extract the complete user command by stripping whitespace
             user_request = self._input_buffer.strip()
+            
+            # Clear the input buffer for the next command
             self._input_buffer = ""
-            ecs_log("info",f"SSH command received from {self.clientID}: {user_request}")
+            
+            # Log the received command for debugging purposes
+            ecs_log("info", f"SSH command received from {self.clientID}: {user_request}")
+            
+            # Handle the command asynchronously to avoid blocking the event loop
             asyncio.create_task(self.handle_command(user_request))
 
     async def handle_command(self, user_request: str):
-        ecs_log("debug",f"Handling SSH command: {user_request}")
+        ecs_log("info",f"Handling SSH command: {user_request}")
 
         # Close connection if the user enters "exit"
         if user_request.lower() == "exit":
@@ -90,6 +101,7 @@ class SSHServer(asyncssh.SSHServer):
     def __init__(self, config, aiclient):
         self.config = config
         self.aiclient = aiclient  
+        ecs_log("info","SSH server initialized.")
     
 
     def password_auth_supported(self):
@@ -98,6 +110,7 @@ class SSHServer(asyncssh.SSHServer):
     def validate_password(self, username, password):
         ecs_log("info", f"SSH login attempt with username: {username} and password: {password}")
         if password == self.config["ssh"]["acceptedPassword"]:
+            ecs_log("info", f"SSH login successful for username: {username}.")
             return True
         else:
             ecs_log("info", f"SSH login failed for username: {username} with incorrect password {password}.")
@@ -125,11 +138,12 @@ async def start_ssh_service(config, aiclient):
     # Path to the SSH host key file
     host_key_file = config["ssh"]["host_key_path"]
     if not os.path.exists(host_key_file):
-        ecs_log("info","Generating new SSH host key for SSH service.")
+        ecs_log("info","No ssh host key file provided. Generating new one for SSH service.")
         key = asyncssh.generate_private_key("ssh-rsa")
         with open(host_key_file, "wb") as f:
             f.write(key.export_private_key())
         os.chmod(host_key_file, 0o600)
+        ecs_log("info","New ssh host key file generated.")
 
     try:
         server = await asyncssh.create_server(

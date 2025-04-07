@@ -42,3 +42,4 @@ ssh:
   # this prompt will be combined with the baseprompt to an overall prompt. 
   sshprompt: "The decoy that you are simulating is a ssh server of an edge device. Generate realistic, contextually consistent SSH responses that keep the attacker engaged. The decoy is running a honeypot and should not reveal its nature. Make sure that your responses align with your previous given responses."
   acceptedPassword: "password" # Password that is accepted by the decoy. This is used to simulate a successful login.
+  sshLinePrefix: "RemoteConsole> " # Prefix that is displayed before the command input. This can be used to simulate a real SSH server's behavior.
