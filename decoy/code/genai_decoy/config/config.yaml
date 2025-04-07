@@ -2,8 +2,8 @@
 
 # All other parts of the project remain under the MLP 2.0 License.
 
-# Protocol to be used by the decoy. Currently only http is supported.
-protocol: ssh
+# Environment variable defining the protocol to be used by the decoy. Currently only http or ssh is supported. Make sure to set this variable in your environment before running the decoy.
+protocolEnvVariable: GENAI_DECOY_PROTOCOL
 
 # Port on which the decoy will listen
 port: 8000

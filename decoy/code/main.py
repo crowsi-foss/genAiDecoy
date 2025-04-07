@@ -1,4 +1,5 @@
 import asyncio
+import os
 from genai_decoy.protocols.ssh import start_ssh_service
 from genai_decoy.config import load_config, validate_config
 from genai_decoy.genai_clients import get_genai_client
@@ -6,7 +7,7 @@ from genai_decoy.protocols.http import start_http_server
 from genai_decoy.logging import ecs_log
 
 async def main():
-    config = load_config()
+    config = load_config()    
     validate_config(config)
 
     ecs_log("startup", "Starting decoy service", protocol=config["protocol"], port=config["port"])

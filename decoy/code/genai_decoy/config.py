@@ -8,7 +8,9 @@ def load_config():
     """Loads configuration from config.yaml file."""
     try:
         with open(CONFIG_PATH, 'r') as file:
-            return yaml.safe_load(file)
+            config= yaml.safe_load(file)
+            config["protocol"]= os.getenv(config["protocolEnvVariable"]) 
+            return config
     except Exception as e:
         ecs_log("error", "Failed to load configuration", error=str(e))
         raise SystemExit("Configuration loading failed. Exiting...")
