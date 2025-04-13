@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: genaidecoy-deployment
+  name: {{.Values.genAIDecoyProtocol}}-genaidecoy-deployment
   labels:
-    app: genaidecoy
+    app: {{.Values.genAIDecoyProtocol}}-genaidecoy
 spec:
   replicas: {{.Values.replicaCount}}
   selector:
     matchLabels:
-      app: genaidecoy
+      app: {{.Values.genAIDecoyProtocol}}-genaidecoy
   template:
     metadata:
       labels:
-        app: genaidecoy
+        app: {{.Values.genAIDecoyProtocol}}-genaidecoy
     spec:
       containers:
       - name: genaidecoy
@@ -40,6 +40,8 @@ spec:
             secretKeyRef:
               name: {{.Values.secretKeyRefName}}
               key: {{.Values.secretKeyRefKey}}
+        - name: {{.Values.genAIDecoyProtocolEnvVariableName}}
+          value: {{.Values.genAIDecoyProtocol}}
       volumes:
       - name: tmp
         emptyDir: {}
@@ -61,10 +63,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: genaidecoy-service
+  name: {{.Values.genAIDecoyProtocol}}-genaidecoy-service
 spec:
   selector:
-    app: genaidecoy
+    app: {{.Values.genAIDecoyProtocol}}-genaidecoy
   ports:
   - protocol: TCP
     port: {{.Values.containerPort}}
@@ -79,7 +81,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-        app: genaidecoy
+        app: {{.Values.genAIDecoyProtocol}}-genaidecoy
   policyTypes:
   - Ingress
   ingress:
