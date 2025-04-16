@@ -41,8 +41,8 @@ spec:
     services:
       - name: {{.Values.genAIDecoyProtocol}}-genaidecoy-service
         port: {{.Values.containerPort}}
-  # tls:
-  #   secretName: my-tls-secret
+  tls: {}
+    # secretName: my-tls-secret
     # options:
     #   name: default
     #   namespace: ""
