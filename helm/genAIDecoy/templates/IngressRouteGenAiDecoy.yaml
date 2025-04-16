@@ -43,7 +43,7 @@ spec:
         port: {{.Values.containerPort}}
   tls:
     secretName: my-tls-secret
-    options:
-      name: default
-      namespace: ""
+    # options:
+    #   name: default
+    #   namespace: ""
 {{- end }}
