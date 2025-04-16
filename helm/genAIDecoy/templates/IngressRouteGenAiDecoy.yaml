@@ -45,4 +45,5 @@ spec:
     secretName: my-tls-secret
     options:
       name: default
+      namespace: ""
 {{- end }}
