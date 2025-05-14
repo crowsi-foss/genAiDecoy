@@ -44,6 +44,7 @@ More information on the CROWSI platform is available here:
   - OpenAI
 - More web services:
   - MQTT
+- Session Management accross multiple replicas and connection sessions
 
 ## Quick Start
 

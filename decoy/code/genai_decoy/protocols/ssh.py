@@ -4,6 +4,7 @@ import os
 from genai_decoy.logging import ecs_log
 from collections import defaultdict, deque
 from typing import Optional
+from genai_decoy.tcp_wrapper import client_certificate_data  # Import certificate_data from tcp_wrapper
 
 # Initialize session with a default maxlen of 10
 client_session_history = defaultdict(lambda: deque(maxlen=10))
@@ -23,18 +24,26 @@ class SSHServerSession(asyncssh.SSHServerSession):
     def connection_made(self, chan):
         self._chan = chan
 
-        # Retrieve client IP from channel extra info
+        # Retrieve client port from channel extra info
         peer_info = self._chan.get_extra_info("peername")
-        self.clientID = peer_info[0] if peer_info and len(peer_info) > 0 else "unknown"
+        client_port = peer_info[1] if peer_info and len(peer_info) > 1 else None
 
-        # Initialize history for this IP if not already present
+        # Check client_certificate_data for the serial number of the connecting client certificate
+        global client_certificate_data
+        cert_info = client_certificate_data.get(client_port, {})
+        cert_serial_number = cert_info.get("serialNumber", "unknown")
+
+        # Use the certificate serial number as the clientID
+        self.clientID = cert_serial_number
+
+        # Initialize history for this clientID if not already present
         global client_session_history
         if self.clientID not in client_session_history:
             client_session_history[self.clientID] = []
 
         self._chan.write(f"""{self.config["ssh"]["banner"]}\r\n""")
         self._chan.write(self._prompt)
-        ecs_log("info",f"SSH session established for {self.clientID}.")
+        ecs_log("info", f"SSH session established for client with serial number: {self.clientID}.")
 
     def shell_requested(self):
         ecs_log("info",f"SSH shell requested for {self.clientID}.")
@@ -154,8 +163,8 @@ async def start_ssh_service(config, aiclient):
     try:
         server = await asyncssh.create_server(
             lambda: SSHServer(config, aiclient),
-            "0.0.0.0",
-            config["port"],
+            "127.0.0.1",
+            config["internalServicePort"],
             server_host_keys=[host_key_file],
             sftp_factory=None,
         )

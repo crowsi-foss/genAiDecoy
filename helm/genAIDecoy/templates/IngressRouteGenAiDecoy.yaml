@@ -41,9 +41,6 @@ spec:
     services:
       - name: {{.Values.genAIDecoyProtocol}}-genaidecoy-service
         port: {{.Values.containerPort}}
-  tls: {}
-    # secretName: my-tls-secret
-    # options:
-    #   name: default
-    #   namespace: ""
+  tls:  #when you want tls managed by traefik set this to {} and remove the passthrough
+    passthrough: true
 {{- end }}
