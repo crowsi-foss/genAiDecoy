@@ -25,12 +25,6 @@ spec:
           {{- end }}
           - name: tmp
             mountPath: "/tmp"
-          - name: ca-cert
-            mountPath: "/etc/ssl/certs/ca"
-            readOnly: true
-          - name: tls-secret
-            mountPath: "/etc/ssl/certs/servertls"
-            readOnly: true
         ports:
         - containerPort: {{.Values.containerPort}}
         securityContext:
@@ -51,15 +45,6 @@ spec:
       volumes:
       - name: tmp
         emptyDir: {}
-      - name: ca-cert
-        secret:
-          secretName: client-auth-ca-cert
-          items:
-            - key: ca.crt
-              path: ca.crt
-      - name: tls-secret
-        secret:
-          secretName: my-tls-secret
       {{- if eq .Values.useSecretProvider true}}
       - name: secrets-store-inline
         csi:

@@ -1,11 +1,10 @@
 # Default values for genAIDecoy.
 
 # Number of replicas for the GenAIDecoy deployment
-# currently the implementation is not capable of managing sessions across multiple replicas. This will be supported in the future. Until this, please do not change this value.
 replicaCount: 1
 
 # Docker image reference for the container
-imagereference: "crowsi/genaidecoy:0.2.1" # If you refer to a private repository, make sure to also specify the value "imagePullSecret"
+imagereference: "crowsi/genaidecoy:0.2.0" # If you refer to a private repository, make sure to also specify the value "imagePullSecret"
 
 # Port on which the container will expose its service. Make sure that this aligns with your Dockerfile and the config.yaml file.
 containerPort: 8000
@@ -31,16 +30,11 @@ secretKeyRefName: "aiapi-secret"
 # Key within the Kubernetes Secret to use for the API key
 secretKeyRefKey: "genaiapikey"
 
-# Path prefix for the API. This tells the traefik ingress controller to route traffic to the correct service in case of http.
+# Path prefix for the API. This tells the traefik ingress controller to route traffic to the correct service.
 Pathprefix: "PathPrefix(`/api`)"
 
 # Priority level for the deployment. This tells the traefik ingress controller with wich priority to route traffic to the service. Higher priority means that the service will be used first.
 priority: 2
-
-# Name of the Kubernetes Secret containing the CA certificate
-caSecretName: "client-auth-ca-cert"
-
-
 
 
 
