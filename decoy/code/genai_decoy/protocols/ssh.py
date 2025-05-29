@@ -86,7 +86,7 @@ class SSHServerSession(asyncssh.SSHServerSession):
         except Exception as e:
             ecs_log("error", f"Failed to generate AI response. Error: {str(e)}")
             
-        
+        ecs_log("info", f"AI response generated for {self.clientID}: {response}")
         self._chan.write(response + "\r\n")
         self._chan.write(self._prompt)
 

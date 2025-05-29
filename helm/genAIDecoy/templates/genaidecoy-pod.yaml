@@ -77,7 +77,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: limit-genaidecoy-communication
+  name: {{.Values.genAIDecoyProtocol}}-limit-genaidecoy-communication
 spec:
   podSelector:
     matchLabels:
