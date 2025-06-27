@@ -1,5 +1,5 @@
 ecs-logging==2.2.0
-fastapi==0.115.11
+fastapi==0.115.14
 uvicorn==0.34.0
 google-genai==1.5.0
 pyyaml==6.0.2
