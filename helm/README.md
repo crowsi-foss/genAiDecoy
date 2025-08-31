@@ -10,7 +10,6 @@ The following table lists the configurable parameters of the GenAiDecoy chart an
 
 | Parameter                     | Description                                      | Default                          |
 |-------------------------------|--------------------------------------------------|----------------------------------|
-| `replicaCount`                | Number of replicas                               | `1`                              |
 | `imagereference`              | Image reference                                  | `crowsi/genaidecoy:0.1.0`        |
 | `containerPort`               | Container port                                   | `8000`                           |
 | `genAIApiKeyEnvVariableName`  | Environment variable name for GenAI API key      | `GENAI_API_KEY`                  |
@@ -21,11 +20,7 @@ The following table lists the configurable parameters of the GenAiDecoy chart an
 | `Pathprefix`                  | Path prefix                                      | `PathPrefix(`/api`)`             |
 | `priority`                    | Priority                                         | `2`                              |
 
-You can specify each parameter using the `--set key=value[,key=value]` argument to `helm install` or `helm upgrade`. For example:
-
-```sh
-helm install genAiDecoyRelease genAiDecoyRepo/genAiDecoy --set replicaCount=2
-```
+You can specify each parameter using the `--set key=value[,key=value]` argument to `helm install` or `helm upgrade`.
 
 Alternatively, you can provide a YAML file that specifies the values for the parameters when installing or upgrading the chart:
 
