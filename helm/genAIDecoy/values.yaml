@@ -1,8 +1,5 @@
 # Default values for genAIDecoy.
 
-# Number of replicas for the GenAIDecoy deployment
-replicaCount: 1
-
 # Docker image reference for the container
 imagereference: "crowsi/genaidecoy:0.2.0" # If you refer to a private repository, make sure to also specify the value "imagePullSecret"
 
