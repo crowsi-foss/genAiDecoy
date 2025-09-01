@@ -96,9 +96,20 @@ class SSHServerSession(asyncssh.SSHServerSession):
             )
 
             try:
-                # Attempt to parse the JSON response
-                response_data = json.loads(ai_response)
-                response = response_data["response"]
+                # Find the start and end of the JSON block
+                json_start = ai_response.find('{')
+                json_end = ai_response.rfind('}') + 1
+
+                if json_start != -1 and json_end != 0:
+                    json_str = ai_response[json_start:json_end]
+                    # Attempt to parse the extracted JSON response
+                    response_data = json.loads(json_str)
+                    response = response_data["response"]
+                else:
+                    # If no JSON block is found, fallback to the raw response
+                    ecs_log("warning", f"No JSON object found in AI response. Session ID: {self.session_id}, Username: {self.username}, Raw Response: {ai_response}")
+                    response = ai_response
+
             except (json.JSONDecodeError, KeyError) as e:
                 ecs_log("error", f"Failed to parse AI JSON response. Session ID: {self.session_id}, Username: {self.username}, Error: {str(e)}, Raw Response: {ai_response}")
                 # Fallback to using the raw response if parsing fails
