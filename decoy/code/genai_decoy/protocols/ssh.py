@@ -38,16 +38,12 @@ userprompt = ""
 class SSHServerSession(asyncssh.SSHServerSession):
     def __init__(self, config, aiclient, session_id, username=None):
         self._input_buffer = ""
+        self._prompt = config["ssh"]["sshLinePrefix"]
         self.config = config
         self.aiclient = aiclient
         self.session_id = session_id
-        self.username = username or "user"
+        self.username = username
         self._chan = None
-
-        # Format the prompt using the username and hostname from config
-        hostname = self.config["ssh"].get("hostname", "localhost")
-        prompt_format = self.config["ssh"].get("sshLinePrefix", "{username}@{hostname}> ")
-        self._prompt = prompt_format.format(username=self.username, hostname=hostname)
 
     def connection_made(self, chan):
         global session_manager
