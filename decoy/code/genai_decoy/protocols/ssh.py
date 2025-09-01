@@ -3,6 +3,7 @@ import asyncio
 import asyncssh
 import os
 import uuid
+import json
 from genai_decoy.logging import ecs_log
 from collections import deque
 from typing import Optional
@@ -37,12 +38,16 @@ userprompt = ""
 class SSHServerSession(asyncssh.SSHServerSession):
     def __init__(self, config, aiclient, session_id, username=None):
         self._input_buffer = ""
-        self._prompt = config["ssh"]["sshLinePrefix"]
         self.config = config
         self.aiclient = aiclient
         self.session_id = session_id
-        self.username = username
+        self.username = username or "user"
         self._chan = None
+
+        # Format the prompt using the username and hostname from config
+        hostname = self.config["ssh"].get("hostname", "localhost")
+        prompt_format = self.config["ssh"].get("sshLinePrefix", "{username}@{hostname}> ")
+        self._prompt = prompt_format.format(username=self.username, hostname=hostname)
 
     def connection_made(self, chan):
         global session_manager
@@ -82,14 +87,23 @@ class SSHServerSession(asyncssh.SSHServerSession):
             session_manager.remove_session(self.session_id)
             return
 
-        system_prompt = f"""{userprompt} \n. Your response should just contain the command output and be formatted like this ssh-response#####your-response\n"""
+        system_prompt = f"""{userprompt} \n. Your response must be a JSON object with a single key "response" that contains the command output as a string. For example: {{"response": "your-response-here"}}"""
         try:
             history = list(session_manager.get_history(self.session_id))
             ai_response = await self.aiclient.generate_response(
                 prompt=f"Current received command: {user_request}\nLast received commands and given responses: {history}",
                 system_instructions=system_prompt
             )
-            formater, response = ai_response.split("#####")
+
+            try:
+                # Attempt to parse the JSON response
+                response_data = json.loads(ai_response)
+                response = response_data["response"]
+            except (json.JSONDecodeError, KeyError) as e:
+                ecs_log("error", f"Failed to parse AI JSON response. Session ID: {self.session_id}, Username: {self.username}, Error: {str(e)}, Raw Response: {ai_response}")
+                # Fallback to using the raw response if parsing fails
+                response = ai_response
+
         except Exception as e:
             ecs_log("error", f"Failed to generate AI response. Session ID: {self.session_id}, Username: {self.username}, Error: {str(e)}")
             response = "[AI response error]"
