@@ -1,5 +1,14 @@
-decoy/code/genai_decoy/genai_clients/__pycache__/
-decoy/code/genai_decoy/protocols/__pycache__/
-decoy/code/genaidecoyenv/
-decoy/code/genai_decoy/__pycache__
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Log files
+*.log
+
+# SSH key
 ssh_host_key.pem
+
+# Virtual environment
+decoy/code/genaidecoyenv/
