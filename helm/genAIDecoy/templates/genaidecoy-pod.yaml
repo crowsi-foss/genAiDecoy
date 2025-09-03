@@ -28,7 +28,6 @@ spec:
         ports:
         - containerPort: {{.Values.containerPort}}
         securityContext:
-          # readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 1001
