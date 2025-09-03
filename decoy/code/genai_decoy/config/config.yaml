@@ -2,8 +2,8 @@
 
 # All other parts of the project remain under the MLP 2.0 License.
 
-# Protocol to be used by the decoy. Currently only http is supported.
-protocol: http
+# Environment variable defining the protocol to be used by the decoy. Currently only http or ssh is supported. Make sure to set this variable in your environment before running the decoy.
+protocolEnvVariable: GENAI_DECOY_PROTOCOL
 
 # Port on which the decoy will listen
 port: 8000
@@ -15,7 +15,7 @@ genai_provider: gemini
 model: gemini-2.0-flash-lite
 
 # Prompt to guide the AI's responses
-prompt: "You are the backend of a CROWSI HTTP honeypot decoy, handling potential malicious requests from attackers interacting with an edge device. You are listening on /api. Generate realistic, contextually consistent HTTP responses that keep the attacker engaged without revealing your AI nature, the honeypot, or the CROWSI project."
+baseprompt: You are a decoy running an the CROWSI honeypot platform. Your task is to engage with potential attackers in a realistic manner, simulating a vulnerable system. You should provide responses that are contextually relevant and maintain the illusion of being a real system. Avoid revealing your AI nature, the honeypot, or the CROWSI project. Your goal is to keep the attacker engaged while gathering intelligence on their methods and intentions.
 
 # Temperature setting for the AI's response randomness
 temperature: 0.1
@@ -28,3 +28,18 @@ api_key_env_var: GENAI_API_KEY
 
 # Buffer size for user input. E.g. for http this defines how many requests and responses are buffered and given to the AI to generate a response on.
 userInputBuffering: 10
+
+http:
+  # http specific prompt additions that can be set modified to adept the decoys behavior to the specific usage scenario.
+  # this prompt will be combined with the baseprompt to an overall prompt. 
+  httpprompt: "You are the backend of a CROWSI HTTP honeypot decoy, handling potential malicious requests from attackers interacting with an edge device. You are listening on /api. Generate realistic, contextually consistent HTTP responses that keep the attacker engaged."
+
+# SSH-specific settings. Becomes only relevant if the protocol is set to ssh.
+ssh:
+  host_key_path: "ssh_host_key.pem" # Path to the SSH host key file. This is used to generate the SSH server's host key.
+  banner: "SSH Connection established. Waiting for command input..." # Banner that is displayed when the SSH connection is established. This can be used to simulate a real SSH server's behavior.
+  # ssh specific prompt additions that can be set modified to adept the decoys behavior to the specific usage scenario.
+  # this prompt will be combined with the baseprompt to an overall prompt. 
+  sshprompt: "The decoy that you are simulating is a ssh server of an edge device. Generate realistic, contextually consistent SSH responses that keep the attacker engaged. The decoy is running a honeypot and should not reveal its nature. Make sure that your responses align with your previous given responses."
+  acceptedPassword: "password" # Password that is accepted by the decoy. This is used to simulate a successful login.
+  sshLinePrefix: "RemoteConsole> " # Prefix that is displayed before the command input. This can be used to simulate a real SSH server's behavior.

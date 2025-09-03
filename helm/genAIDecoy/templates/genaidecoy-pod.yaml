@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: genaidecoy-deployment
+  name: {{.Values.genAIDecoyProtocol}}-genaidecoy-deployment
   labels:
-    app: genaidecoy
+    app: {{.Values.genAIDecoyProtocol}}-genaidecoy
 spec:
-  replicas: {{.Values.replicaCount}}
+  replicas: 1
   selector:
     matchLabels:
-      app: genaidecoy
+      app: {{.Values.genAIDecoyProtocol}}-genaidecoy
   template:
     metadata:
       labels:
-        app: genaidecoy
+        app: {{.Values.genAIDecoyProtocol}}-genaidecoy
     spec:
       containers:
       - name: genaidecoy
@@ -28,7 +28,6 @@ spec:
         ports:
         - containerPort: {{.Values.containerPort}}
         securityContext:
-          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 1001
@@ -40,6 +39,8 @@ spec:
             secretKeyRef:
               name: {{.Values.secretKeyRefName}}
               key: {{.Values.secretKeyRefKey}}
+        - name: {{.Values.genAIDecoyProtocolEnvVariableName}}
+          value: {{.Values.genAIDecoyProtocol}}
       volumes:
       - name: tmp
         emptyDir: {}
@@ -61,10 +62,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: genaidecoy-service
+  name: {{.Values.genAIDecoyProtocol}}-genaidecoy-service
 spec:
   selector:
-    app: genaidecoy
+    app: {{.Values.genAIDecoyProtocol}}-genaidecoy
   ports:
   - protocol: TCP
     port: {{.Values.containerPort}}
@@ -75,11 +76,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: limit-genaidecoy-communication
+  name: {{.Values.genAIDecoyProtocol}}-limit-genaidecoy-communication
 spec:
   podSelector:
     matchLabels:
-        app: genaidecoy
+        app: {{.Values.genAIDecoyProtocol}}-genaidecoy
   policyTypes:
   - Ingress
   ingress:

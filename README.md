@@ -29,6 +29,7 @@ More information on the CROWSI platform is available here:
 - Python-based modular framework to build different web service-based honeypots where responses are created by a GenAI backend integration
 - Currently supported web services:
   - HTTP
+  - SSH
 - Currently supported GenAI Providers:
   - Gemini
 - All logs are formatted in the Elastic Common Schema for simple processing
@@ -43,7 +44,6 @@ More information on the CROWSI platform is available here:
   - OpenAI
 - More web services:
   - MQTT
-  - SSH
 
 ## Quick Start
 
