@@ -2,6 +2,6 @@ ecs-logging==2.2.0
 uvicorn==0.38.0
 fastapi==0.120.2
 pyyaml==6.0.3
-google-genai==1.47.0
+google-genai==1.52.0
 asyncssh==2.21.1
 
