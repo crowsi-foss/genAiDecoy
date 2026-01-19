@@ -1,4 +1,4 @@
-ecs-logging==2.2.0
+ecs-logging==2.3.0
 uvicorn==0.38.0
 fastapi==0.120.2
 pyyaml==6.0.3
